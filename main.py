@@ -10,7 +10,6 @@ import json
 import urllib3
 import os
 import sys
-import threading
 
 class yszfplugin(StellarPlayer.IStellarPlayerPlugin):
     def __init__(self,player:StellarPlayer.IStellarPlayer):
@@ -34,40 +33,24 @@ class yszfplugin(StellarPlayer.IStellarPlayerPlugin):
         self.ids = ''
         self.tid = ''
         self.spy = []
-        self.searhStop = False
-        self.li = []
-        self.allSearchMedias = []
     
     def start(self):
         super().start()
-        try:
-            down_url = 'https://hub.gitmirror.com/https://raw.githubusercontent.com/avil888888/stellar-yszy/main/1.json'
-            r = requests.get(down_url,timeout = 10,verify=False) 
-            result = r.status_code
-            if result == 200:
-                with open('remote.json','wb') as f:
-                    f.write(r.content)
-                    f.close()            
-            self.resolveJson('remote.json')
-        except Exception as r:
-            print('get remote source.json error %s' %r)
-        if len(self.spy) == 0:
-            path = os.path.split(os.path.realpath(__file__))[0]
-            for root, dirs, files in os.walk(path): 
-                for file in files:
-                    filenames = os.path.splitext(file)
-                    if os.path.splitext(file)[1] == '.json':  # 想要保存的文件格式
-                        self.resolveJson(path + os.path.sep + file)
+        path = os.path.split(os.path.realpath(__file__))[0]
+        for root, dirs, files in os.walk(path): 
+            for file in files:
+                filenames = os.path.splitext(file)
+                if os.path.splitext(file)[1] == '.json':  # 想要保存的文件格式
+                    self.resolveJson(path + os.path.sep + file)
         if len(self.spy) > 0:
             cat = self.spy[0]
-            print(cat)
             self.apiurl = cat['api']
             self.apitype = cat['datatype']
-            self.getMediaType(False)
+            self.getMediaType()
             self.pg = ''
             self.wd = ''
             self.tid = ''
-            self.getMediaList(False)
+            self.getMediaList()
         
         
     def resolveJson(self,file):
@@ -109,20 +92,17 @@ class yszfplugin(StellarPlayer.IStellarPlayerPlugin):
             {
                 'group':[
                     {'type':'edit','name':'search_edit','label':'搜索','width':0.4},
-                    {'type':'button','name':'搜索当前站','@click':'onSearch','width':100},
-                    {'type':'button','name':'搜索所有站','@click':'onSearchAll','width':100},
+                    {'type':'button','name':'搜索','@click':'onSearch','width':80}
                 ],
                 'width':1.0,
                 'height':30
             },
             {'type':'space','height':10},
-            {
-                'group':[
-                    {'type':'grid','name':'zygrid','itemlayout':zywz_layout,'value':self.spy,'itemheight':30,'itemwidth':80,'width':100},
-                    {'type':'grid','name':'mediaclassgrid','itemlayout':mediaclass_layout,'value':self.mediaclass,'itemheight':30,'itemwidth':60,'width':80},
-                    {'type':'grid','name':'mediagrid','itemlayout':mediagrid_layout,'value':self.medias,'separator':True,'itemheight':240,'itemwidth':150}
-                ]
-            },
+            {'type':'grid','name':'zygrid','itemlayout':zywz_layout,'value':self.spy,'itemheight':30,'itemwidth':80,'height':70},
+            {'type':'space','height':5},
+            {'type':'grid','name':'mediaclassgrid','itemlayout':mediaclass_layout,'value':self.mediaclass,'itemheight':30,'itemwidth':80,'height':80},
+            {'type':'space','height':5},
+            {'type':'grid','name':'mediagrid','itemlayout':mediagrid_layout,'value':self.medias,'separator':True,'itemheight':240,'itemwidth':150},
             {'group':
                 [
                     {'type':'space'},
@@ -146,27 +126,22 @@ class yszfplugin(StellarPlayer.IStellarPlayerPlugin):
         return controls
     
     def onMainMenuClick(self, page, listControl, item, itemControl):
-        self.searhStop = True
-        self.allSearchMedias = []
         self.loading()
-        self.player.updateControlValue('main','mediaclassgrid',[])
-        self.player.updateControlValue('main','mediagrid',[])
         cat = self.spy[item]
         self.apiurl = cat['api']
         self.apitype = cat['datatype']
-        self.getMediaType(True)
+        self.getMediaType()
         self.pg = ''
         self.wd = ''
         self.tid = ''
-        self.getMediaList(True)
+        self.getMediaList()
         self.loading(True)
          
-    def getMediaType(self,showerror):
+    def getMediaType(self):
         self.mediaclass = []
-        self.player.updateControlValue('main','mediaclassgrid',self.mediaclass)
         url = self.apiurl + '?ac=list'
         try:
-            res = requests.get(url,timeout = 10,verify=False)
+            res = requests.get(url,timeout = 5,verify=False)
             if res.status_code == 200:
                 if self.apitype == 'json':
                     jsondata = json.loads(res.text, strict = False)
@@ -183,16 +158,13 @@ class yszfplugin(StellarPlayer.IStellarPlayerPlugin):
                             self.mediaclass.append({'type_id':t_id,'type_name':t_name})
                         self.getPageInfoXML(bs)
             else:
-                if showerror:
-                    self.player and self.player.toast('main','请求失败')
-        except:
-            if showerror:
                 self.player and self.player.toast('main','请求失败')
+        except:
+            self.player and self.player.toast('main','请求失败')
         self.player.updateControlValue('main','mediaclassgrid',self.mediaclass)
         
-    def getMediaList(self,showerror):
+    def getMediaList(self):
         self.medias = []
-        self.player.updateControlValue('main','mediagrid',self.medias)
         if self.apiurl == '':
             return
         url = self.apiurl + '?ac=videolist'
@@ -204,14 +176,14 @@ class yszfplugin(StellarPlayer.IStellarPlayerPlugin):
         if self.pg != '':
             url = url + self.pg
         try:
-            res = requests.get(url,timeout = 10,verify=False)
+            res = requests.get(url,timeout = 5,verify=False)
             if res.status_code == 200:
                 if self.apitype == 'json':
                     jsondata = json.loads(res.text, strict = False)
                     if jsondata:
                         jsonlist = jsondata['list']
                         for item in jsonlist:
-                            self.medias.append({'api':self.apiurl,'ids':item['vod_id'],'title':item['vod_name'],'picture':item['vod_pic'],'apitype':self.apitype})
+                            self.medias.append({'ids':item['vod_id'],'title':item['vod_name'],'picture':item['vod_pic']})
                         self.getPageInfoJson(jsondata)
                 else:
                     bs = bs4.BeautifulSoup(res.content.decode('UTF-8','ignore'),'html.parser')
@@ -225,19 +197,15 @@ class yszfplugin(StellarPlayer.IStellarPlayerPlugin):
                                 name = nameinfo[0].string
                                 pic = picinfo[0].string
                                 ids = int(idsinfo[0].string)
-                                self.medias.append({'api':self.apiurl,'ids':ids,'title':name,'picture':pic,'apitype':self.apitype})
+                                self.medias.append({'ids':ids,'title':name,'picture':pic})
                     self.getPageInfoXML(bs)
             else:
-                if showerror:
-                    self.player and self.player.toast('main','请求失败')
-        except:
-            if showerror:
                 self.player and self.player.toast('main','请求失败')
+        except:
+            self.player and self.player.toast('main','请求失败')
         self.player.updateControlValue('main','mediagrid',self.medias)
     
     def on_class_click(self, page, listControl, item, itemControl):
-        self.searhStop = True
-        self.allSearchMedias = []
         if self.apiurl == '':
             return
         self.loading()
@@ -245,7 +213,7 @@ class yszfplugin(StellarPlayer.IStellarPlayerPlugin):
         self.wd = ''
         self.pg = ''
         self.tid = '&t=' + str(typeid)
-        self.getMediaList(True)
+        self.getMediaList()
         self.loading(True)
     
     def getPageInfoJson(self,jsondata):
@@ -300,113 +268,19 @@ class yszfplugin(StellarPlayer.IStellarPlayerPlugin):
                     return
         self.loading()
         self.wd = search_word
-        self.getMediaList(True)
-        self.loading(True)
-    
-    def onSearchAll(self,*args):
-        search_word = self.player.getControlValue('main','search_edit').strip()
-        if search_word == '':
-            self.player.toast("main","搜索条件不能为空")
-            return
-        self.searhStop = True
-        for t in self.li:
-            t.join()
-        self.li = []
-        self.medias = []
-        self.allSearchMedias = []
-        self.player.updateControlValue('main','mediagrid',self.medias)
-        self.searhStop = False
-        for cat in self.spy:
-            if cat['search']:
-                searchurl = cat['api']
-                apitype = cat['datatype']
-                self.newSearchNode(searchurl,search_word,apitype,1)
-        return
-
-    def newSearchNode(self,searchurl,wd,apitype,pageindex):
-        t = threading.Thread(target=self._SearchNoneThread,args=(searchurl,wd,apitype,pageindex))
-        self.li.append(t)
-        t.start()
-        
-    def _SearchNoneThread(self,searchurl,wd,apitype,pageindex):
-        zyzapiurl = searchurl
-        zyzapitype = apitype
-        if self.searhStop:
-            return
-        url = zyzapiurl + '?ac=videolist&wd=' + wd + '&pg=' + str(pageindex)
-        print(url)
-        try:
-            res = requests.get(url,timeout = 10,verify=False)
-            if res.status_code == 200:
-                if zyzapitype == "json":
-                    jsondata = json.loads(res.text, strict = False)
-                    if jsondata:
-                        pageindex = int(jsondata['page'])
-                        pagenumbers = int(jsondata['pagecount'])
-                        if pageindex < pagenumbers and pagenumbers < 5:
-                            self.newSearchNode(searchurl, wd, apitype,pageindex + 1)
-                        if pagenumbers >= 5:
-                            return
-                        jsonlist = jsondata['list']
-                        for item in jsonlist:
-                            if self.searhStop == False:
-                                self.allSearchMedias.append({'ids':item['vod_id'],'title':item['vod_name'],'picture':item['vod_pic'],'api':zyzapiurl,'apitype':zyzapitype})
-                else:
-                    bs = bs4.BeautifulSoup(res.content.decode('UTF-8','ignore'),'html.parser')
-                    selector = bs.select('rss > list')
-                    pagenumbers = 0
-                    pageindex = 0
-                    if selector:
-                        pageindex = int(selector[0].get('page'))
-                        pagenumbers = int(selector[0].get('pagecount'))
-                    if pageindex < pagenumbers and pagenumbers < 5:
-                        self.newSearchNode(searchurl, wd, apitype,pageindex + 1)
-                    if pagenumbers >= 5:
-                        return
-                    selector = bs.select('rss > list > video')
-                    if selector:
-                        for item in selector:
-                            nameinfo = item.select('name')
-                            picinfo = item.select('pic')
-                            idsinfo = item.select('id')
-                            if nameinfo and picinfo and idsinfo:
-                                name = nameinfo[0].string
-                                pic = picinfo[0].string
-                                ids = int(idsinfo[0].string)
-                                if self.searhStop == False:
-                                    self.allSearchMedias.append({'ids':ids,'title':name,'picture':pic,'api':zyzapiurl,'apitype':zyzapitype})
-            else:
-                return
-        except:
-            return
-        if self.searhStop == False:
-            if len(self.medias) < 20:
-                num = 20
-                if num > len(self.allSearchMedias):
-                    num = len(self.allSearchMedias)
-                for i in range(len(self.medias),num):
-                    self.pageindex = 1
-                    self.medias.append(self.allSearchMedias[i]);
-                    self.cur_page = '第1页'
-                    self.player.updateControlValue('main','mediagrid',self.medias)
-            self.pagenumbers = len(self.allSearchMedias) // 20
-            if self.pagenumbers * 20 < len(self.allSearchMedias):
-                self.pagenumbers = self.pagenumbers + 1
-            self.max_page = '共' + str(self.pagenumbers) + '页'
-            self.player.updateControlValue('main','mediagrid',self.medias)
+        self.getMediaList()
+        self.loading(True)        
         
     def on_grid_click(self, page, listControl, item, itemControl):
         videoid = self.medias[item]['ids']
-        apiurl = self.medias[item]['api']
-        apitype = self.medias[item]['apitype']
-        url = apiurl + '?ac=videolist&ids=' + str(videoid)
-        self.onGetMediaPage(url,apitype)
+        url = self.apiurl + '?ac=videolist&ids=' + str(videoid)
+        self.onGetMediaPage(url)
         
-    def onGetMediaPage(self,url,apitype):
+    def onGetMediaPage(self,url):
         try:
-            res = requests.get(url,timeout = 10,verify=False)
+            res = requests.get(url,timeout = 5,verify=False)
             if res.status_code == 200:
-                if apitype == 'json':
+                if self.apitype == 'json':
                     jsondata = json.loads(res.text, strict = False)
                     if jsondata:
                         medialist = jsondata['list']
@@ -420,30 +294,17 @@ class yszfplugin(StellarPlayer.IStellarPlayerPlugin):
                             sourcelen = len(playfromlist)
                             sourcelist = []
                             for i in range(sourcelen):
-                                urllist = [] 
-                                urlstr = playurllist[i]
-                                jjlist = urlstr.split('#')
-                                n = 0
-                                for jj in jjlist:
-                                    n = n + 1
-                                    if jj.strip() != '':
+                                if playfromlist[i].find('m3u8') >= 0:
+                                    urllist = [] 
+                                    urlstr = playurllist[i]
+                                    jjlist = urlstr.split('#')
+                                    for jj in jjlist:
                                         jjinfo = jj.split('$')
-                                        js = ''
-                                        jsdz = ''
-                                        if len(jjinfo) == 1:
-                                            js = '第' + str(n) + '集'
-                                            jsdz = jjinfo[0]
-                                        elif len(jjinfo) == 2:
-                                            js = jjinfo[0]
-                                            jsdz = jjinfo[1]
-                                        if jsdz.find('.m3u8') > 0 or jsdz.find('.mp4') > 0:
-                                            urllist.append({'title':js,'url':jsdz})
-                                if len(urllist) > 0:
+                                        urllist.append({'title':jjinfo[0],'url':jjinfo[1]})
                                     sourcelist.append({'flag':playfromlist[i],'medias':urllist})
-                            if len(sourcelist) > 0:
-                                mediainfo = {'medianame':info['vod_name'],'pic':info['vod_pic'],'actor':'演员:' + info['vod_actor'].strip(),'content':'简介:' + info['vod_content'].strip(),'source':sourcelist}
-                                self.createMediaFrame(mediainfo)
-                                return
+                            mediainfo = {'medianame':info['vod_name'],'pic':info['vod_pic'],'actor':'演员:' + info['vod_actor'].strip(),'content':'简介:' + info['vod_content'].strip(),'source':sourcelist}
+                            self.createMediaFrame(mediainfo)
+                            return
                 else:
                     bs = bs4.BeautifulSoup(res.content.decode('UTF-8','ignore'),'html.parser')
                     selector = bs.select('rss > list > video')
@@ -521,69 +382,40 @@ class yszfplugin(StellarPlayer.IStellarPlayerPlugin):
         ]
         result,control = self.doModal(mediainfo['medianame'],750,500,'',controls)
 
-    def updateSearch(self,index):
-        print(index)
-        if index < 1:
-            return
-        self.medias = []
-        self.player.updateControlValue('main','mediagrid',self.medias)
-        self.pageindex = index
-        self.cur_page = '第' + str(self.pageindex) + '页'
-        if len(self.allSearchMedias) >= 20 * (index - 1):
-            idxend = 20 * index
-            idxstart = idxend - 20
-            if idxend > len(self.allSearchMedias):
-                idxend = len(self.allSearchMedias)
-            for i in range(idxstart,idxend):
-                self.medias.append(self.allSearchMedias[i])
-            self.player.updateControlValue('main','mediagrid',self.medias)
         
     def onClickFirstPage(self, *args):
-        if len(self.allSearchMedias) == 0:
-            if self.firstpg == '':
-                return
-            self.pg = self.firstpg
-            self.loading()
-            self.getMediaList(True)
-            self.loading(True)
-        else:
-            self.updateSearch(1)
+        if self.firstpg == '':
+            return
+        self.pg = self.firstpg
+        self.loading()
+        self.getMediaList()
+        self.loading(True)
         
     def onClickFormerPage(self, *args):
-        if len(self.allSearchMedias) == 0:
-            if self.previouspg == '':
-                return
-            self.pg = self.previouspg
-            self.loading()
-            self.getMediaList(True)
-            self.loading(True)
-        else:
-            self.updateSearch(self.pageindex - 1)
+        if self.previouspg == '':
+            return
+        self.pg = self.previouspg
+        self.loading()
+        self.getMediaList()
+        self.loading(True)
     
     def onClickNextPage(self, *args):
-        if len(self.allSearchMedias) == 0:
-            if self.nextpg == '':
-                return
-            self.pg = self.nextpg
-            self.loading()
-            self.getMediaList(True)
-            self.loading(True)
-        else:
-            self.updateSearch(self.pageindex + 1)
+        if self.nextpg == '':
+            return
+        self.pg = self.nextpg
+        self.loading()
+        self.getMediaList()
+        self.loading(True)
         
     def onClickLastPage(self, *args):
-        if len(self.allSearchMedias) == 0:
-            if self.lastpg == '':
-                return
-            self.pg = self.lastpg
-            self.loading()
-            self.getMediaList(True)
-            self.loading(True)
-        else:
-            self.updateSearch(self.pagenumbers)
+        if self.lastpg == '':
+            return
+        self.pg = self.lastpg
+        self.loading()
+        self.getMediaList()
+        self.loading(True)
     
     def on_xl_click(self, page, listControl, item, itemControl):
-        self.player.updateControlValue(page,'movielist',[])
         if len(self.allmovidesdata[page]['allmovies']) > item:
             self.allmovidesdata[page]['actmovies'] = self.allmovidesdata[page]['allmovies'][item]['medias']
         self.player.updateControlValue(page,'movielist',self.allmovidesdata[page]['actmovies'])
@@ -592,14 +424,10 @@ class yszfplugin(StellarPlayer.IStellarPlayerPlugin):
         if len(self.allmovidesdata[page]['actmovies']) > item:
             playurl = self.allmovidesdata[page]['actmovies'][item]['url']
             playname = page + ' ' + self.allmovidesdata[page]['actmovies'][item]['title']
-            playlist = []
-            for xl in self.allmovidesdata[page]['allmovies']:
-                if len(xl['medias']) > item:
-                    playlist.append({'url':xl['medias'][item]['url']})
-                try:
-                    self.player.playMultiUrls(playlist,playname)
-                except:
-                    self.player.play(playurl, caption=playname) 
+            try:
+                self.player.play(playurl, caption=playname)
+            except:
+                self.player.play(playurl)  
             
     def playMovieUrl(self,playpageurl):
         return
