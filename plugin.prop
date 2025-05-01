@@ -1,5 +1,5 @@
-name=影视资源
-description = 在线影视资源
-version=1.14
-url=https://github.com/avil888888/stellar-yszy
+name=影视采集
+description = 在线影视采集
+version=1.04c
+url=https://github.com/avil888888/stellar-yscj
 type=在线播放
