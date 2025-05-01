@@ -1,13 +1,17 @@
 [
-    {"title":"如意","api":"https://cj.rycjapi.com/api.php/provide/vod/","datatype":"json","search":true},
-    {"title":"新浪","api":"http://api.xinlangapi.com/xinlangapi.php/provide/vod/","datatype":"json","search":true},
-	{"title":"卧龙","api":"https://collect.wolongzyw.com/api.php/provide/vod/","datatype":"json","search":true},
-    {"title":"量子","api":"http://cj.lziapi.com/api.php/provide/vod/","datatype":"json","search":true},
-    {"title":"光速","api":"https://api.guangsuapi.com/api.php/provide/vod/","datatype":"json","search":true},
-    {"title":"红牛","api":"https://www.hongniuzy2.com/api.php/provide/vod/","datatype":"json","search":true},
-    {"title":"百度","api":"https://api.apibdzy.com/api.php/provide/vod/from/dbm3u8/","datatype":"json","search":true},
-    {"title":"樱花","api":"https://m3u8.apiyhzy.com/api.php/provide/vod/","datatype":"json","search":true},
-    {"title":"非凡","api":"http://api.ffzyapi.com/api.php/provide/vod/","datatype":"json","search":true},
-    {"title":"魔爪","api":"https://www.mdzyapi.com/api.php/provide/vod/","datatype":"json","search":true},
-	{"title":"索尼","api":"https://suoniapi.com/api.php/provide/vod/","datatype":"json","search":true}
+    {"title":"如意资源","api":"https://cj.rycjapi.com/api.php/provide/vod/","datatype":"json","search":true},
+    {"title":"新浪资源","api":"http://api.xinlangapi.com/xinlangapi.php/provide/vod/","datatype":"json","search":true},
+	{"title":"卧龙资源","api":"https://collect.wolongzyw.com/api.php/provide/vod/","datatype":"json","search":true},
+    {"title":"量子资源","api":"http://cj.lziapi.com/api.php/provide/vod/","datatype":"json","search":true},
+    {"title":"光速资源","api":"https://api.guangsuapi.com/api.php/provide/vod/","datatype":"json","search":true},
+    {"title":"红牛资源","api":"https://www.hongniuzy2.com/api.php/provide/vod/","datatype":"json","search":true},
+    {"title":"百度资源","api":"https://api.apibdzy.com/api.php/provide/vod/from/dbm3u8/","datatype":"json","search":true},
+    {"title":"樱花资源","api":"https://m3u8.apiyhzy.com/api.php/provide/vod/","datatype":"json","search":true},
+    {"title":"豆瓣资源","api":"https://caiji.dbzy5.com/api.php/provide/vod/","datatype":"json","search":true},
+    {"title":"豪华资源","api":"https://hhzyapi.com/api.php/provide/vod/","datatype":"json","search":true},
+    {"title":"魔都资源","api":"https://www.mdzyapi.com/api.php/provide/vod/","datatype":"json","search":true},
+    {"title":"鸭鸭资源","api":"https://cj.yayazy.net/api.php/provide/vod/","datatype":"json","search":true},
+    {"title":"非凡资源","api":"http://api.ffzyapi.com/api.php/provide/vod/","datatype":"json","search":true},
+    {"title":"魔爪资源","api":"https://mozhuazy.com/api.php/provide/vod/","datatype":"json","search":true},
+	{"title":"索尼资源","api":"https://suoniapi.com/api.php/provide/vod/","datatype":"json","search":true}
 ]
