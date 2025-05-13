@@ -13,5 +13,6 @@
     {"title":"鸭鸭资源","api":"https://cj.yayazy.net/api.php/provide/vod/","datatype":"json","search":true},
     {"title":"非凡资源","api":"http://api.ffzyapi.com/api.php/provide/vod/","datatype":"json","search":true},
     {"title":"魔爪资源","api":"https://mozhuazy.com/api.php/provide/vod/","datatype":"json","search":true},
+    {"title":"飘零影院","api":"https://p2100.net/api.php/provide/vod/","datatype":"json","search":true},
 	{"title":"索尼资源","api":"https://suoniapi.com/api.php/provide/vod/","datatype":"json","search":true}
 ]
